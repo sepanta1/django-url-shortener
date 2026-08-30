@@ -1,5 +1,6 @@
 # ruff: noqa: ERA001, E501
 """Base settings to build other settings files upon."""
+
 import os
 import ssl
 from pathlib import Path
@@ -101,6 +102,7 @@ THIRD_PARTY_APPS = [
 
 LOCAL_APPS = [
     "url_shortener.users",
+    "url_shortener.shortener",
     # Your stuff: custom apps go here
 ]
 # https://docs.djangoproject.com/en/dev/ref/settings/#installed-apps
