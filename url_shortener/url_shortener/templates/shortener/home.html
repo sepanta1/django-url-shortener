@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% load crispy_forms_tags %}
+
+{% block content %}
+<div class="container py-5">
+  <div class="row justify-content-center">
+    <div class="col-md-8 col-lg-6">
+
+      <div class="text-center mb-4">
+        <h1 class="fw-bold">URL Shortener</h1>
+        <p class="text-muted">Paste a long URL and get a short one back.</p>
+      </div>
+
+      <div class="card shadow-sm">
+        <div class="card-body p-4">
+          <form method="post">
+            {% csrf_token %}
+            {{ form|crispy }}
+            <button type="submit" class="btn btn-primary w-100 mt-2">Shorten</button>
+          </form>
+        </div>
+      </div>
+
+      {% if short_url %}
+      <div class="alert alert-success mt-4 d-flex justify-content-between align-items-center">
+        <div>
+          <strong>Your short URL:</strong>
+          <a href="{{ short_url }}" target="_blank" rel="noopener">{{ short_url }}</a>
+        </div>
+        <button
+          type="button"
+          class="btn btn-sm btn-outline-success"
+          onclick="navigator.clipboard.writeText('{{ short_url }}')"
+        >
+          Copy
+        </button>
+      </div>
+      {% endif %}
+
+    </div>
+  </div>
+</div>
+{% endblock %}

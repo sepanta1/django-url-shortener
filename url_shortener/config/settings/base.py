@@ -102,9 +102,9 @@ THIRD_PARTY_APPS = [
 
 LOCAL_APPS = [
     "url_shortener.users",
+    "url_shortener.links",
     "url_shortener.shortener",
     "url_shortener.redirector",
-    "url_shortener.links",
     # Your stuff: custom apps go here
 ]
 # https://docs.djangoproject.com/en/dev/ref/settings/#installed-apps

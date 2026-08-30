@@ -31,7 +31,7 @@ def generate_short_code(long_url: str, salt: str = "") -> str:
     return code.rjust(CODE_LENGTH, BASE62_ALPHABET[0])[:CODE_LENGTH]
 
 
-def create_short_url(long_url: str, model) -> str:
+def create_short_url(long_url: str, model, user=None) -> str:
     """
     model: your ShortenedURL model, passed in to keep this function
     decoupled from Django ORM specifics if you ever want to test it standalone.
@@ -40,6 +40,10 @@ def create_short_url(long_url: str, model) -> str:
         salt = "" if attempt == 0 else str(timezone.now().timestamp())
         code = generate_short_code(long_url, salt=salt)
         if not model.objects.filter(short_code=code).exists():
-            model.objects.create(short_code=code, long_url=long_url)
+            model.objects.create(
+                short_code=code,
+                long_url=long_url,
+                created_by=user if user and user.is_authenticated else None,
+            )
             return code
     raise RuntimeError("Failed to generate a unique short code after shoretries")
