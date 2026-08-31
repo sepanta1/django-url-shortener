@@ -5,6 +5,7 @@ from django.utils import timezone
 from url_shortener.links.models import ShortenedURL
 
 CACHE_TTL_SECONDS = 60 * 60 * 24
+CLICK_COUNTER_PREFIX = "click_pending:"
 
 
 def resolve_short_code(short_code: str) -> str:
@@ -21,20 +22,14 @@ def resolve_short_code(short_code: str) -> str:
         cache.set(cache_key, long_url, CACHE_TTL_SECONDS)
     else:
         obj = None
-    _track_click(short_code, obj)
+    _track_click(short_code)
     return long_url
 
 
-def _track_click(short_code: str, obj: ShortenedURL | None) -> None:
-    """Increment click count. Fetches the object only if not already loaded."""
-    if obj is None:
-        obj = (
-            ShortenedURL.objects.filter(pk=short_code)
-            .only("click_count", "last_clicked_at")
-            .first()
-        )
-        if obj is None:
-            return
-    obj.click_count += 1
-    obj.last_clicked_at = timezone.now()
-    obj.save(update_fields=["click_count", "last_clicked_at"])
+def _track_click(short_code: str) -> None:
+
+    key = f"{CLICK_COUNTER_PREFIX}{short_code}"
+    try:
+        cache.incr(key)
+    except ValueError:
+        cache.set(key, 1)
