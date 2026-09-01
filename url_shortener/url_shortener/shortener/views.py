@@ -1,3 +1,4 @@
+from django.contrib.auth.decorators import login_required
 from django.shortcuts import render
 
 from url_shortener.links.models import ShortenedURL
@@ -22,4 +23,15 @@ def shorten_form_view(request):
         request,
         "shortener/home.html",
         {"form": form, "short_url": short_url},
+    )
+
+@login_required
+def user_shorten_links(request):
+    links = ShortenedURL.objects.filter(created_by =request.user)
+    return render(
+        request,
+        "shortener/user_links.html",
+        {
+            "links": links,
+        },
     )

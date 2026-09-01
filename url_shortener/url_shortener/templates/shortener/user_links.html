@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+<div class="container py-5">
+  <div class="row justify-content-center">
+    <div class="col-md-10 col-lg-8">
+
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="fw-bold mb-0">Your Links</h1>
+        <a href="{% url 'shortener:home' %}" class="btn btn-primary">+ New Link</a>
+      </div>
+
+      {% if links %}
+        <div class="table-responsive">
+          <table class="table table-hover align-middle">
+            <thead>
+              <tr>
+                <th>Short URL</th>
+                <th>Original URL</th>
+                <th>Clicks</th>
+                <th>Created</th>
+                <th>Last clicked</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for link in links %}
+              <tr>
+                <td>
+                  <a href="/{{ link.short_code }}/" target="_blank" rel="noopener">
+                    {{ request.get_host }}/{{ link.short_code }}
+                  </a>
+                </td>
+                <td class="text-truncate" style="max-width: 250px;" title="{{ link.long_url }}">
+                  {{ link.long_url }}
+                </td>
+                <td>
+                  <span class="badge bg-secondary">{{ link.click_count }}</span>
+                </td>
+                <td>{{ link.created_at|date:"M d, Y" }}</td>
+                <td>
+                  {% if link.last_clicked_at %}
+                    {{ link.last_clicked_at|date:"M d, Y H:i" }}
+                  {% else %}
+                    <span class="text-muted">Never</span>
+                  {% endif %}
+                </td>
+                <td>
+                  <button
+                    type="button"
+                    class="btn btn-sm btn-outline-secondary"
+                    onclick="navigator.clipboard.writeText('{{ request.scheme }}://{{ request.get_host }}/{{ link.short_code }}/')"
+                  >
+                    Copy
+                  </button>
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      {% else %}
+        <div class="text-center py-5">
+          <p class="text-muted">You haven't shortened any links yet.</p>
+          <a href="{% url 'shortener:home' %}" class="btn btn-primary">Shorten your first link</a>
+        </div>
+      {% endif %}
+
+    </div>
+  </div>
+</div>
+{% endblock %}
