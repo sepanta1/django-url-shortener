@@ -332,7 +332,7 @@ ACCOUNT_LOGIN_METHODS = {"username"}
 # https://docs.allauth.org/en/latest/account/configuration.html
 ACCOUNT_SIGNUP_FIELDS = ["email*", "username*", "password1*", "password2*"]
 # https://docs.allauth.org/en/latest/account/configuration.html
-ACCOUNT_EMAIL_VERIFICATION = "mandatory"
+ACCOUNT_EMAIL_VERIFICATION = "none"
 # https://docs.allauth.org/en/latest/account/configuration.html
 ACCOUNT_ADAPTER = "url_shortener.users.adapters.AccountAdapter"
 # https://docs.allauth.org/en/latest/account/forms.html
