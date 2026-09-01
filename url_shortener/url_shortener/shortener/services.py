@@ -1,6 +1,8 @@
 import hashlib
 import string
 
+from django.db import IntegrityError
+from django.db import transaction
 from django.utils import timezone
 
 BASE62_ALPHABET = string.digits + string.ascii_letters
@@ -39,11 +41,15 @@ def create_short_url(long_url: str, model, user=None) -> str:
     for attempt in range(MAX_RETRIES):
         salt = "" if attempt == 0 else str(timezone.now().timestamp())
         code = generate_short_code(long_url, salt=salt)
-        if not model.objects.filter(short_code=code).exists():
-            model.objects.create(
-                short_code=code,
-                long_url=long_url,
-                created_by=user if user and user.is_authenticated else None,
-            )
+        try:
+            with transaction.atomic():
+                model.objects.create(
+                    short_code=code,
+                    long_url=long_url,
+                    created_by=user if user and user.is_authenticated else None,
+                )
+            
             return code
-    raise RuntimeError("Failed to generate a unique short code after shoretries")
+        except IntegrityError:
+            continue
+    raise RuntimeError("Failed to generate a unique short code after retries")
