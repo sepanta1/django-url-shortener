@@ -1,3 +1,62 @@
 {% extends "base.html" %}
 
+{% block content %}
+<div class="container py-5">
+  <div class="row justify-content-center">
+    <div class="col-md-9 col-lg-8">
+
+      <h1 class="fw-bold mb-4">About this project</h1>
+
+      <p class="lead">
+        A URL shortener built to explore the problems every high-traffic
+        redirect service actually has to solve — not just "turn a long URL
+        into a short one," but doing it safely under concurrent load, and
+        keeping the redirect path fast as traffic grows.
+      </p>
+
+      <h2 class="h4 mt-5 mb-3">How it works</h2>
+      <p>
+        Paste a long URL, and the app hashes it with SHA-256, encodes a
+        slice of that hash in base62, and returns a 6-character code. The
+        same URL always produces the same code — no duplicate rows for
+        links you've already shortened. If two different URLs happen to
+        collide on the same code (rare, but possible), the database's own
+        unique constraint catches it, and the app retries with a
+        timestamp-based salt rather than relying on a check-then-create
+        pattern that has a race condition under concurrent requests.
+      </p>
+
+      <h2 class="h4 mt-5 mb-3">Why it's split into three apps</h2>
+      <p>
+        Creating a short link and following one are very different
+        workloads — writes are rare, reads happen on every single click.
+        So the project separates them: a shared app owns the data, a
+        "shortener" app handles creation, and a "redirector" app handles
+        lookups. Neither of the latter two depends on the other, which
+        means the redirect path — the part that actually needs to be fast
+        — has no dependency on the creation logic at all.
+      </p>
+
+      <h2 class="h4 mt-5 mb-3">Making redirects fast</h2>
+      <p>
+        Every redirect checks Redis before it checks the database. On a
+        cache miss, the lookup is cached for 24 hours, so the database only
+        gets hit once per link per day under normal traffic, not once per
+        click. Click counts are tracked the same way — incremented
+        directly in Redis on each visit, then flushed to Postgres in a
+        batch by a scheduled Celery task, so the redirect itself never
+        waits on a database write.
+      </p>
+
+      <h2 class="h4 mt-5 mb-3">Built with</h2>
+      <p class="mb-0">
+        Django, PostgreSQL, Redis, Celery, and Docker — scaffolded with
+        <a href="https://github.com/cookiecutter/cookiecutter-django" target="_blank" rel="noopener">cookiecutter-django</a>.
+      </p>
+
+    </div>
+  </div>
+</div>
+{% endblock %}
+
 
