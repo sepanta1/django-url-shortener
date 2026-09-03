@@ -1,13 +1,27 @@
 {% extends "base.html" %}
 
-{% block title %}Forbidden (403){% endblock title %}
+{% block title %}Forbidden (CSRF verification failed){% endblock title %}
+
 {% block content %}
-  <h1>Forbidden (403)</h1>
-  <p>
-    {% if exception %}
-      {{ exception }}
-    {% else %}
-      You're not allowed to access this page.
-    {% endif %}
-  </p>
+<div class="container py-5">
+  <div class="row justify-content-center text-center">
+    <div class="col-md-8 col-lg-6">
+
+      <div class="mb-4">
+        <span class="display-1 fw-bold text-danger">403</span>
+      </div>
+
+      <h1 class="h3 fw-bold mb-3">Session expired</h1>
+
+      <p class="text-muted mb-4">
+        Your form submission couldn't be verified{% if reason %} ({{ reason }}){% endif %}.
+        This usually happens if the page was open for a while before submitting,
+        or if cookies are disabled. Try going back and submitting again.
+      </p>
+
+      <a href="{% url 'shortener:home' %}" class="btn btn-primary">Go home</a>
+
+    </div>
+  </div>
+</div>
 {% endblock content %}
