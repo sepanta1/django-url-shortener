@@ -1,9 +1,10 @@
 from unittest.mock import MagicMock
+from unittest.mock import patch
 
 import pytest
+from django.db import IntegrityError
 
 from .services import _base62_encode
-
 from .services import create_short_url
 from .services import generate_short_code
 
@@ -26,7 +27,7 @@ class TestGenerateShortCode:
     def test_same_url_produces_same_code(self):
         code1 = generate_short_code("https://example.com")
         code2 = generate_short_code("https://example.com")
-        assert code1 == code2  # deterministic — no salt, same input
+        assert code1 == code2
 
     def test_different_urls_produce_different_codes(self):
         code1 = generate_short_code("https://example.com")
@@ -44,31 +45,38 @@ class TestGenerateShortCode:
 
 
 class TestCreateShortUrl:
-    def test_creates_url_when_no_collision(self):
+    @patch("url_shortener.shortener.services.transaction.atomic")
+    def test_creates_url_when_no_collision(self, mock_atomic):
         mock_model = MagicMock()
-        mock_model.objects.filter.return_value.exists.return_value = False
 
         code = create_short_url("https://example.com", mock_model)
 
         mock_model.objects.create.assert_called_once_with(
             short_code=code,
             long_url="https://example.com",
+            created_by=None,
         )
 
-    def test_retries_on_collision_then_succeeds(self):
+    @patch("url_shortener.shortener.services.transaction.atomic")
+    def test_retries_on_collision_then_succeeds(self, mock_atomic):
         mock_model = MagicMock()
-        # first call: collision (True), second call: free (False)
-        mock_model.objects.filter.return_value.exists.side_effect = [True, False]
+
+        mock_model.objects.create.side_effect = [
+            IntegrityError,
+            None,
+        ]
 
         code = create_short_url("https://example.com", mock_model)
 
-        assert mock_model.objects.create.call_count == 1
+        assert mock_model.objects.create.call_count == 2
+        assert isinstance(code, str)
 
-    def test_raises_after_max_retries_exhausted(self):
+    @patch("url_shortener.shortener.services.transaction.atomic")
+    def test_raises_after_max_retries_exhausted(self, mock_atomic):
         mock_model = MagicMock()
-        mock_model.objects.filter.return_value.exists.return_value = (
-            True  # always collides
-        )
+        mock_model.objects.create.side_effect = IntegrityError
 
         with pytest.raises(RuntimeError):
             create_short_url("https://example.com", mock_model)
+
+        assert mock_model.objects.create.call_count == 3
